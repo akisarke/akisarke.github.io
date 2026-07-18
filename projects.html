@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>akisarke@links:~/projects$</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='10' y='.9em' font-size='70' fill='%2339d353'>~$</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0d0d0d;
+    color: #c8c8c8;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    cursor: text;
+    overflow-x: hidden;
+  }
+
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: #0d0d0d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.6s ease;
+  }
+  #login-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .login-box { width: min(480px, 90vw); }
+
+  .login-header {
+    color: #555;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+
+  .login-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .login-row.visible { opacity: 1; }
+
+  .login-label {
+    color: #c8c8c8;
+    min-width: 100px;
+    user-select: none;
+  }
+
+  .login-display {
+    flex: 1;
+    border: 1px solid #39d353;
+    padding: 3px 8px;
+    color: #39d353;
+    min-height: 1.6em;
+  }
+  .login-display .caret {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    background: #39d353;
+    vertical-align: text-bottom;
+    margin-left: 1px;
+    animation: blink 1s step-end infinite;
+  }
+
+  .status-line {
+    margin-top: 18px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    min-height: 1.6em;
+  }
+  .status-line.visible { opacity: 1; }
+  .status-ok  { color: #39d353; }
+
+  #main-content {
+    padding: 32px 24px 64px;
+    max-width: 720px;
+  }
+
+  .line {
+    display: block;
+    white-space: pre;
+    opacity: 0;
+  }
+  .line.animate {
+    animation: appear 0s forwards;
+  }
+  @keyframes appear { to { opacity: 1; } }
+
+  .g  { color: #39d353; }
+  .c  { color: #58d8f0; }
+  .y  { color: #f0c040; }
+  .p  { color: #b48eff; }
+  .m  { color: #555;    }
+  .b  { font-weight: 700; }
+
+  .prompt::before {
+    content: 'akisarke@links:~/projects$ ';
+    color: #39d353;
+    font-weight: 700;
+  }
+
+  .typed {
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid #39d353;
+    width: 0;
+  }
+  .typed.animate {
+    animation: type 0.6s steps(20, end) forwards, blink-caret 0.75s step-end 4;
+  }
+  @keyframes type        { to { width: 100%; } }
+  @keyframes blink-caret { 0%,100%{border-color:#39d353} 50%{border-color:transparent} }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    background: #39d353;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+    margin-left: 1px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* project grid */
+  .project-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 8px 0 28px;
+  }
+  .project-card {
+    border: 1px solid #262626;
+    padding: 16px;
+    opacity: 0;
+    transition: border-color 0.15s;
+  }
+  .project-card.animate { animation: appear 0s forwards; }
+  .project-card:hover { border-color: #39d353; }
+  .project-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: #58d8f0;
+    font-weight: 700;
+  }
+  .project-title:hover { text-decoration: underline; }
+  .project-vis {
+    font-size: 10px;
+    color: #555;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-weight: 400;
+  }
+  .project-desc {
+    color: #999;
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .project-lang {
+    margin-top: 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #999;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot.py { background: #58d8f0; }
+  .dot.html { background: #f0c040; }
+  .dot.js { background: #f0c040; }
+
+  .back-link { color: #58d8f0; }
+  .back-link:hover { color: #ffffff; }
+
+  @media (max-width: 600px) {
+    body { font-size: 11px; line-height: 1.7; }
+    #main-content { padding: 18px 12px 48px; }
+    .prompt::before { content: 'aki@links:~/projects$ '; }
+    .project-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-header" id="login-header"></div>
+    <div class="login-row" id="row-user">
+      <span class="login-label">username: </span>
+      <div class="login-display" id="disp-user"><span class="caret"></span></div>
+    </div>
+    <div class="login-row" id="row-pass">
+      <span class="login-label">password: </span>
+      <div class="login-display" id="disp-pass"><span class="caret"></span></div>
+    </div>
+    <div class="status-line" id="status-line"></div>
+  </div>
+</div>
+
+<div id="main-content">
+
+<span class="line" data-delay="0.0"><span class="m">Linux links-vm 6.1.0 #1 SMP x86_64 GNU/Linux</span></span>
+<span class="line" data-delay="0.1"><span class="m">Last login: Sat Mar 21 18:44:11 2026 from 192.168.1.1</span></span>
+<span class="line" data-delay="0.2"> </span>
+
+<span class="line prompt" data-delay="0.3"><span class="typed" data-typed-delay="0.3" data-typed-dur="0.4">cd ..</span></span>
+<span class="line" data-delay="0.4"> </span>
+<span class="line link-row" data-delay="0.5"><span class="m">→ </span><a class="back-link" href="index.html">back to ~/</a></span>
+<span class="line" data-delay="0.6"> </span>
+
+<span class="line prompt" data-delay="0.9"><span class="typed" data-typed-delay="0.9" data-typed-dur="0.5">whoami</span></span>
+<span class="line" data-delay="1.0"> </span>
+<span class="line" data-delay="1.1"><span class="g b">aleksa</span></span>
+<span class="line" data-delay="1.2"> </span>
+
+<span class="line prompt" data-delay="1.3"><span class="typed" data-typed-delay="1.3" data-typed-dur="0.7">cat ~/.profile</span></span>
+<span class="line" data-delay="1.4"> </span>
+<span class="line" data-delay="1.5"><span class="c">name     </span>  akisarke <span class="m">(sarke / Aleksa)</span></span>
+<span class="line" data-delay="1.6"><span class="c">bio      </span>  Professional retard named Aleksa.</span>
+<span class="line" data-delay="1.7"><span class="c">location </span>  Serbia 🇷🇸</span>
+<span class="line" data-delay="1.8"> </span>
+
+<span class="line prompt" data-delay="1.9"><span class="typed" data-typed-delay="1.9" data-typed-dur="0.7">ls -la ~/projects/</span></span>
+<span class="line" data-delay="2.0"> </span>
+<span class="line" data-delay="2.1"><span class="m">total 4</span></span>
+
+<div class="project-grid">
+
+  <div class="project-card" data-delay="2.2">
+    <a class="project-title" href="https://github.com/aleksaingh/clicksmith" target="_blank">
+      clicksmith <span class="project-vis">Public</span>
+    </a>
+    <div class="project-desc">A 3x3 macropad using custom HID via adafruit_hid firmware.</div>
+    <div class="project-lang"><span class="dot py"></span> Python</div>
+  </div>
+
+  <div class="project-card" data-delay="2.3">
+    <a class="project-title" href="https://akisarke.github.io" target="_blank">
+      akisarke.github.io <span class="project-vis">Public</span>
+    </a>
+    <div class="project-desc">The page for my site.</div>
+    <div class="project-lang"><span class="dot html"></span> HTML</div>
+  </div>
+
+  <div class="project-card" data-delay="2.4">
+    <a class="project-title" href="https://github.com/aleksaingh/sneko-bot" target="_blank">
+      sneko-bot <span class="project-vis">Public</span>
+    </a>
+    <div class="project-desc">A Slack all-in-one bot that tells you mostly some fun facts.</div>
+    <div class="project-lang"><span class="dot js"></span> JavaScript</div>
+  </div>
+
+  <div class="project-card" data-delay="2.5">
+    <a class="project-title" href="https://github.com/aleksaingh/musmith" target="_blank">
+      musmith <span class="project-vis">Public</span>
+    </a>
+    <div class="project-desc">A mini music controller with a rotary encoder and OLED screen for previous / play-pause / next track.</div>
+    <div class="project-lang"><span class="dot py"></span> Python</div>
+  </div>
+
+</div>
+
+<span class="line prompt" data-delay="2.7"><span class="typed" data-typed-delay="2.7" data-typed-dur="0.5">echo $tips</span></span>
+<span class="line" data-delay="2.8"> </span>
+<span class="line" data-delay="2.9"><span class="y">  click a project name to open its repo</span></span>
+<span class="line" data-delay="3.0"> </span>
+<span class="line" data-delay="3.1"><span class="m">  </span><span class="cursor"></span></span>
+
+</div>
+
+<script>
+(function () {
+  const USERNAME = 'user';
+  const PASSWORD = 'anonymous';
+
+  const loginScreen = document.getElementById('login-screen');
+  const loginHeader = document.getElementById('login-header');
+  const rowUser     = document.getElementById('row-user');
+  const rowPass     = document.getElementById('row-pass');
+  const dispUser    = document.getElementById('disp-user');
+  const dispPass    = document.getElementById('disp-pass');
+  const statusLine  = document.getElementById('status-line');
+
+  function typeInto(el, text, charDelay, isDots, onDone) {
+    el.innerHTML = '';
+    let i = 0;
+    function next() {
+      if (i >= text.length) {
+        const c = document.createElement('span');
+        c.className = 'caret';
+        el.appendChild(c);
+        if (onDone) onDone();
+        return;
+      }
+      const ch = document.createElement('span');
+      ch.textContent = isDots ? '·' : text[i];
+      el.appendChild(ch);
+      i++;
+      setTimeout(next, charDelay + Math.random() * charDelay * 0.6);
+    }
+    next();
+  }
+
+  function showStatus(msg, isOk) {
+    statusLine.textContent = msg;
+    statusLine.className = 'status-line visible ' + (isOk ? 'status-ok' : 'status-err');
+  }
+
+  function startMainAnimation() {
+    document.querySelectorAll('.line, .project-card').forEach(function(el) {
+      const delay = el.getAttribute('data-delay') || '0';
+      el.style.animationDelay = delay + 's';
+      el.classList.add('animate');
+    });
+
+    document.querySelectorAll('.typed').forEach(function(el) {
+      const delay = el.getAttribute('data-typed-delay') || '0';
+      const dur   = el.getAttribute('data-typed-dur') || '0.6';
+      el.style.animationDelay = delay + 's';
+      el.style.animationDuration = dur + 's';
+      el.classList.add('animate');
+    });
+  }
+
+  function transitionToMain() {
+    loginScreen.classList.add('fade-out');
+    setTimeout(function() {
+      loginScreen.style.display = 'none';
+      startMainAnimation();
+    }, 650);
+  }
+
+  setTimeout(function() {
+    loginHeader.innerHTML = '<span style="color:#555"> </span>';
+  }, 300);
+
+  setTimeout(function() {
+    rowUser.classList.add('visible');
+    dispUser.innerHTML = '';
+    typeInto(dispUser, USERNAME, 90, false, function() {
+      setTimeout(function() {
+        rowPass.classList.add('visible');
+        dispPass.innerHTML = '';
+        typeInto(dispPass, PASSWORD, 100, true, function() {
+          setTimeout(function() {
+            showStatus('Authenticating...', true);
+          }, 300);
+          setTimeout(function() {
+            showStatus('[ OK ] Login successful. Welcome, ' + USERNAME + '.', true);
+          }, 1000);
+          setTimeout(function() {
+            transitionToMain();
+          }, 2000);
+        });
+      }, 400);
+    });
+  }, 800);
+})();
+</script>
+</body>
+</html>
