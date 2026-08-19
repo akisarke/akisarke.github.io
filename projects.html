@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -79,6 +81,11 @@ color: #555;
 margin-top: 8px;
 }
 .status-msg.err { color: #ff6b6b; }
+.wip-badge {
+color: #39d353;
+font-weight: 700;
+margin-right: 6px;
+}
 
 @media (max-width: 600px) {
 body { font-size: 12px; }
@@ -102,7 +109,7 @@ body { font-size: 12px; }
 <script>
 (function () {
 const USERNAME = 'akisarke';
-// Repos we never want listed here (profile README repo, and the site repo itself)
+// Exclude
 const EXCLUDE = new Set(['akisarke', 'akisarke.github.io']);
 
 const statusEl = document.getElementById('status');
@@ -131,14 +138,33 @@ function fetchLanguages(repo) {
 return fetch(repo.languages_url)
 .then(function (res) { return res.ok ? res.json() : {}; })
 .then(function (langObj) {
-// languages_url returns { LanguageName: byteCount, ... } ordered by GitHub isn't guaranteed,
-// so sort by byte count descending ourselves.
 return Object.keys(langObj).sort(function (a, b) { return langObj[b] - langObj[a]; });
 })
 .catch(function () { return repo.language ? [repo.language] : []; });
 }
 
-function render(repos, languagesByRepo) {
+// Keywords for WIP
+const WIP_PATTERN = /\b(wip|work[\s-]in[\s-]progress)\b/i;
+
+function decodeBase64Utf8(b64) {
+const binary = atob(b64.replace(/\n/g, ''));
+const bytes = new Uint8Array(binary.length);
+for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+return new TextDecoder('utf-8').decode(bytes);
+}
+
+function fetchIsWip(repo) {
+return fetch('https://api.github.com/repos/' + USERNAME + '/' + repo.name + '/readme')
+.then(function (res) { return res.ok ? res.json() : null; })
+.then(function (data) {
+if (!data || !data.content) return false;
+const text = decodeBase64Utf8(data.content);
+return WIP_PATTERN.test(text);
+})
+.catch(function () { return false; });
+}
+
+function render(repos, languagesByRepo, wipByRepo) {
 listEl.innerHTML = '';
 
 if (repos.length === 0) {
@@ -160,10 +186,16 @@ nameLink.rel = 'noopener';
 nameLink.textContent = repo.name + (repo.fork ? ' (fork)' : '');
 card.appendChild(nameLink);
 
-if (repo.description) {
+if (repo.description || wipByRepo[i]) {
 const desc = document.createElement('div');
 desc.className = 'repo-desc';
-desc.textContent = repo.description;
+if (wipByRepo[i]) {
+const badge = document.createElement('span');
+badge.className = 'wip-badge';
+badge.textContent = '[WIP]';
+desc.appendChild(badge);
+}
+desc.appendChild(document.createTextNode(repo.description || ''));
 card.appendChild(desc);
 }
 
@@ -193,8 +225,11 @@ const filtered = repos
 
 statusEl.textContent = 'fetching languages…';
 
-return Promise.all(filtered.map(fetchLanguages)).then(function (languagesByRepo) {
-render(filtered, languagesByRepo);
+return Promise.all([
+Promise.all(filtered.map(fetchLanguages)),
+Promise.all(filtered.map(fetchIsWip))
+]).then(function (results) {
+render(filtered, results[0], results[1]);
 });
 })
 .catch(function (err) {
