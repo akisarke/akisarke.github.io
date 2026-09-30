@@ -18,8 +18,7 @@ min-height: 100vh;
 }
 #main-content {
 padding: 32px 24px;
-max-width: 900px;
-margin: 0 auto;
+max-width: 1100px;
 }
 .line {
 display: block;
@@ -41,50 +40,76 @@ a:hover { text-decoration: underline; }
 .back-link { color: #58d8f0; }
 .back-link:hover { color: #fff; }
 
-#repo-list {
+.layout {
+display: grid;
+grid-template-columns: 300px minmax(0, 1fr);
+gap: 28px;
+align-items: start;
 margin-top: 8px;
 }
+#repo-list { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; padding: 4px; margin: -4px; }
 .repo-card {
-border: 1px solid #262626;
-border-left: 3px solid #39d353;
-padding: 12px 16px;
-margin-bottom: 12px;
-transition: border-color 0.15s, background 0.15s;
+--tx: 0px; --ty: 0px;
+display: flex; align-items: baseline; gap: 8px;
+width: 100%; font: inherit; color: inherit; text-align: left;
+background: none; border: 0; cursor: pointer;
+padding: 5px 8px; min-height: 32px;
+transform: translate(var(--tx), var(--ty));
+transition: transform 0.15s ease-out, background 0.15s;
 }
-.repo-card:hover {
-border-color: #39d353;
-background: #121212;
-}
-.repo-name {
-color: #58d8f0;
-font-weight: 700;
-font-size: 15px;
-}
-.repo-name:hover { color: #fff; }
-.repo-desc {
-color: #c8c8c8;
-margin-top: 4px;
-white-space: normal;
-}
-.repo-meta {
-margin-top: 6px;
-color: #555;
-font-size: 12px;
-white-space: normal;
-}
+.repo-card::before { content: '>'; color: #39d353; font-weight: 700; opacity: 0; width: 1ch; flex-shrink: 0; }
+.repo-card:hover, .repo-card[aria-expanded="true"] { background: #121212; }
+.repo-card:hover::before, .repo-card[aria-expanded="true"]::before { opacity: 1; }
+.repo-card:focus-visible, .btn:focus-visible { outline: 2px solid #58d8f0; outline-offset: 2px; }
+.repo-name { color: #58d8f0; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.repo-card:hover .repo-name, .repo-card[aria-expanded="true"] .repo-name { color: #fff; }
+.repo-meta { color: #555; font-size: 12px; flex-shrink: 0; }
 .repo-meta .lang { color: #f0c040; }
-.repo-meta .stars { color: #b48eff; }
-.status-msg {
-color: #555;
-margin-top: 8px;
-}
+.wip-badge { color: #39d353; font-weight: 700; text-decoration: underline; }
+.status-msg { color: #555; margin-top: 8px; }
 .status-msg.err { color: #ff6b6b; }
-.repo-meta .wip-badge {
-color: #39d353;
-font-weight: 700;
-text-decoration: underline;
+
+#detail-hint { color: #555; padding-top: 6px; }
+#detail { display: none; position: sticky; top: 24px; background: #0d0d0d; border: 1px solid #39d353; padding: 20px 24px; }
+#detail.open { display: block; animation: pop 0.18s ease-out; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.d-cmd { font: inherit; font-weight: 400; color: #c8c8c8; margin: 0; overflow-wrap: anywhere; }
+.d-cmd::before { content: 'akisarke@links:~/projects$ '; color: #39d353; font-weight: 700; }
+.d-typed { display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; border-right: 2px solid #39d353; animation: type 0.5s steps(var(--n), end) forwards, blink-caret 0.75s step-end 3; width: 0; }
+@keyframes type { to { width: var(--w); } }
+@keyframes blink-caret { 0%, 100% { border-color: #39d353; } 50% { border-color: transparent; } }
+.d-body { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; margin-top: 16px; }
+.d-desc { color: #c8c8c8; overflow-wrap: anywhere; }
+.d-desc.none { color: #555; }
+.d-topics { margin-top: 12px; color: #b48eff; }
+.d-facts { display: grid; grid-template-columns: auto 1fr; gap: 2px 16px; align-content: start; }
+.d-facts dt { color: #58d8f0; }
+.d-facts dd { color: #c8c8c8; }
+.d-facts .lang { color: #f0c040; }
+.d-actions { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 24px; }
+.btn { font: inherit; background: none; border: 0; cursor: pointer; padding: 10px 4px; min-height: 44px; color: #39d353; font-weight: 700; }
+.btn::before { content: '[ '; color: #555; font-weight: 400; }
+.btn::after { content: ' ]'; color: #555; font-weight: 400; }
+.btn:hover { text-decoration: none; background: #39d353; color: #0d0d0d; }
+.btn.secondary { color: #58d8f0; }
+.btn.secondary:hover { background: #58d8f0; color: #0d0d0d; }
+.btn.quiet { color: #555; }
+.btn.quiet:hover { background: none; color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+.repo-card { transition: none; }
+#detail.open { animation: none; }
+.d-typed { animation: none; width: auto; border-right: 0; }
 }
 
+@media (max-width: 700px) {
+.layout { grid-template-columns: 1fr; }
+#repo-list { position: static; max-height: none; overflow: visible; }
+#detail-hint { display: none; }
+#detail { position: fixed; inset: 0; z-index: 50; overflow-y: auto; border: 0; padding: 18px 14px; }
+.d-cmd::before { content: 'aki@links:~/projects$ '; }
+#detail .d-body { grid-template-columns: 1fr; gap: 20px; }
+body.lock { overflow: hidden; }
+}
 @media (max-width: 600px) {
 body { font-size: 12px; }
 #main-content { padding: 18px 12px; }
@@ -101,9 +126,14 @@ body { font-size: 12px; }
 <span class="line prompt">curl -s https://api.github.com/users/akisarke/repos | jq</span>
 <span class="line"> </span>
 <div id="status" class="status-msg">fetching repos…</div>
+<div class="layout">
 <div id="repo-list"></div>
+<div>
+<div id="detail-hint"># click a project to see more</div>
+<section id="detail" role="dialog" aria-labelledby="d-title" aria-modal="false"></section>
 </div>
-
+</div>
+</div>
 <script>
 (function () {
 const USERNAME = 'akisarke';
@@ -163,46 +193,147 @@ return WIP_PATTERN.test(text);
 .catch(function () { return false; });
 }
 
+function el(tag, cls, text) {
+const e = document.createElement(tag);
+if (cls) e.className = cls;
+if (text != null) e.textContent = text;
+return e;
+}
+function fmtDate(s) {
+return new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+const detailEl = document.getElementById('detail');
+const hintEl = document.getElementById('detail-hint');
+const cards = [];
+let items = [];
+let current = -1;
+const mobileMq = window.matchMedia('(max-width: 700px)');
+const canTilt = window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function closeDetail(returnFocus) {
+if (current < 0) return;
+cards[current].setAttribute('aria-expanded', 'false');
+const card = cards[current];
+current = -1;
+detailEl.classList.remove('open');
+hintEl.style.display = '';
+document.body.classList.remove('lock');
+if (returnFocus) card.focus();
+}
+
+function openDetail(i) {
+if (current >= 0) cards[current].setAttribute('aria-expanded', 'false');
+current = i;
+cards[i].setAttribute('aria-expanded', 'true');
+const it = items[i];
+const repo = it.repo;
+
+detailEl.innerHTML = '';
+const cmdText = 'cat ' + repo.name + '/README';
+const cmd = el('h2', 'd-cmd');
+cmd.id = 'd-title';
+const typed = el('span', 'd-typed', cmdText);
+typed.style.setProperty('--n', cmdText.length);
+typed.style.setProperty('--w', cmdText.length + 'ch');
+cmd.appendChild(typed);
+detailEl.appendChild(cmd);
+
+const body = el('div', 'd-body');
+const left = el('div');
+left.appendChild(el('p', repo.description ? 'd-desc' : 'd-desc none', repo.description || 'No description yet.'));
+if (repo.topics && repo.topics.length) {
+left.appendChild(el('p', 'd-topics', repo.topics.map(function (t) { return '#' + t; }).join('  ')));
+}
+body.appendChild(left);
+
+const facts = el('dl', 'd-facts');
+function fact(k, v, cls) { facts.appendChild(el('dt', null, k)); facts.appendChild(el('dd', cls, v)); }
+if (it.langs && it.langs.length) fact('languages', it.langs.join(', '), 'lang');
+fact('stars', String(repo.stargazers_count));
+fact('forks', String(repo.forks_count));
+fact('created', fmtDate(repo.created_at));
+fact('updated', timeAgo(repo.pushed_at || repo.updated_at));
+if (it.wip) fact('status', 'WIP', 'wip-badge');
+if (repo.fork) fact('type', 'fork');
+body.appendChild(facts);
+detailEl.appendChild(body);
+
+const actions = el('div', 'd-actions');
+const gh = el('a', 'btn', 'View on GitHub');
+gh.href = repo.html_url; gh.target = '_blank'; gh.rel = 'noopener';
+actions.appendChild(gh);
+if (repo.homepage && repo.homepage.trim()) {
+const live = el('a', 'btn secondary', 'Open live site');
+live.href = repo.homepage; live.target = '_blank'; live.rel = 'noopener';
+actions.appendChild(live);
+}
+const close = el('button', 'btn quiet', 'close');
+close.type = 'button';
+close.setAttribute('aria-label', 'Close project details');
+close.addEventListener('click', function () { closeDetail(true); });
+actions.appendChild(close);
+detailEl.appendChild(actions);
+
+hintEl.style.display = 'none';
+detailEl.classList.remove('open');
+void detailEl.offsetWidth;
+detailEl.classList.add('open');
+if (mobileMq.matches) document.body.classList.add('lock');
+gh.focus({ preventScroll: true });
+}
+
+document.addEventListener('keydown', function (e) {
+if (e.key === 'Escape') closeDetail(true);
+});
+mobileMq.addEventListener('change', function () { document.body.classList.toggle('lock', current >= 0 && mobileMq.matches); });
+
+function addTilt(card) {
+card.addEventListener('pointermove', function (e) {
+const r = card.getBoundingClientRect();
+card.style.setProperty('--tx', (4 + ((e.clientX - r.left) / r.width - 0.5) * 3).toFixed(2) + 'px');
+card.style.setProperty('--ty', (((e.clientY - r.top) / r.height - 0.5) * 2).toFixed(2) + 'px');
+});
+card.addEventListener('pointerleave', function () {
+card.style.setProperty('--tx', '0px');
+card.style.setProperty('--ty', '0px');
+});
+}
+
 function render(repos, languagesByRepo, wipByRepo) {
 listEl.innerHTML = '';
 
 if (repos.length === 0) {
 statusEl.textContent = 'no public repos found.';
+hintEl.style.display = 'none';
 return;
 }
 
 statusEl.textContent = '# ' + repos.length + ' project' + (repos.length === 1 ? '' : 's') + ' found';
 
 repos.forEach(function (repo, i) {
-const card = document.createElement('div');
+items.push({ repo: repo, langs: languagesByRepo[i], wip: wipByRepo[i] });
+
+const card = document.createElement('button');
+card.type = 'button';
 card.className = 'repo-card';
+card.setAttribute('aria-expanded', 'false');
+card.setAttribute('aria-controls', 'detail');
+card.appendChild(el('span', 'repo-name', repo.name));
 
-const nameLink = document.createElement('a');
-nameLink.className = 'repo-name';
-nameLink.href = repo.homepage && repo.homepage.trim() ? repo.homepage : repo.html_url;
-nameLink.target = '_blank';
-nameLink.rel = 'noopener';
-nameLink.textContent = repo.name + (repo.fork ? ' (fork)' : '');
-card.appendChild(nameLink);
-
-if (repo.description) {
-const desc = document.createElement('div');
-desc.className = 'repo-desc';
-desc.textContent = repo.description;
-card.appendChild(desc);
-}
-
-const meta = document.createElement('div');
-meta.className = 'repo-meta';
-const parts = [];
+const meta = el('span', 'repo-meta');
 const langs = languagesByRepo[i];
-if (langs && langs.length) parts.push('<span class="lang">' + escapeHtml(langs.join(', ')) + '</span>');
-parts.push('<span class="stars">★ ' + repo.stargazers_count + '</span>');
-parts.push('updated ' + timeAgo(repo.pushed_at || repo.updated_at));
-if (wipByRepo[i]) parts.push('<span class="wip-badge">WIP</span>');
-meta.innerHTML = parts.join('  ·  ');
+if (langs && langs.length) meta.appendChild(el('span', 'lang', langs[0]));
+if (wipByRepo[i]) {
+if (meta.firstChild) meta.appendChild(document.createTextNode('  ·  '));
+meta.appendChild(el('span', 'wip-badge', 'WIP'));
+}
 card.appendChild(meta);
 
+card.addEventListener('click', function () { openDetail(i); });
+if (canTilt) addTilt(card);
+cards.push(card);
 listEl.appendChild(card);
 });
 }
