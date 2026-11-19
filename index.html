@@ -207,7 +207,21 @@ a:hover { text-decoration: underline; }
 .link-row a:hover { color: #ffffff; }
 .bio-link { color: #58d8f0; }
 .bio-link:hover { color: #ffffff; }
+.about summary {
+list-style: none;
+cursor: pointer;
+display: block;
+min-height: 44px;
+line-height: 44px;
+}
+.about summary::-webkit-details-marker { display: none; }
+.about summary::after { content: ' [+]'; color: #555; }
+.about[open] summary::after { content: ' [-]'; }
+.about summary:hover::after { color: #39d353; }
+.about summary:focus-visible { outline: 2px solid #58d8f0; outline-offset: 2px; }
+.about-row { display: block; white-space: pre; }
 @media (max-width: 600px) {
+.about-row { white-space: pre-wrap; overflow-wrap: anywhere; }
 body { font-size: 12px; line-height: 1.7; }
 .line { white-space: pre-wrap; overflow-wrap: anywhere; }
 #main-content { padding: 18px 12px; }
@@ -272,10 +286,19 @@ body { font-size: 12px; line-height: 1.7; }
 <span class="line" data-delay="3.3"> </span>
 <span class="line" data-delay="3.4"><span class="y"> click any link above to open it</span></span>
 <span class="line" data-delay="3.5"> </span>
-<span class="line" data-delay="3.6"><span class="m"> </span><span class="cursor"></span></span>
+<span class="line" data-delay="3.6"> </span>
+<details class="line about" data-delay="3.7">
+<summary class="prompt">cat ~/about.txt</summary>
+<span class="about-row"><span class="c">about1 </span> hi im aleksa. i build small web projects and hardware</span>
+<span class="about-row"><span class="c">about2 </span> this page is my links hub. more of my work is on <a class="bio-link" href="projects.html">projects.html</a></span>
+<span class="about-row"><span class="c">featured </span> <a class="bio-link" href="https://guessit.akisarke.xyz" target="_blank">guess it!</a></span>
+<span class="about-row"><span class="c">contact </span> <a class="bio-link" href="mailto:aleksa@akisarke.xyz">aleksa@akisarke.xyz</a></span>
+</details>
+<span class="line" data-delay="3.8"> </span>
+<span class="line" data-delay="3.9"><span class="m"> </span><span class="cursor"></span></span>
 </div>
 <div id="side-image">
-<img src="https://img.akisarke.xyz/akisarke-avatar-1024.png" alt="AkiMc_ Minecraft avatar wearing sunglasses and a tuxedo with a red rose">
+<img src="https://img.akisarke.xyz/akisarke-avatar-1024.png" alt="akimc_ skin pfp">
 </div>
 </div>
 <div id="egg" role="dialog" aria-modal="true" aria-label="Hidden game: dont-rm-me" hidden>
